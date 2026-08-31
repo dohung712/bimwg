@@ -1586,7 +1586,11 @@
         td_lk: curr.td_lk || ORIGINAL_INITIAL_DATA.td_lk || [],
         td_ngay: curr.td_ngay || ORIGINAL_INITIAL_DATA.td_ngay || [],
         td_rt: curr.td_rt || ORIGINAL_INITIAL_DATA.td_rt || [],
-        td_nv: curr.td_nv || ORIGINAL_INITIAL_DATA.td_nv || [],
+        td_nv: [
+          ...(curr.td_nv || ORIGINAL_INITIAL_DATA.td_nv || []),
+          ...(curr.td_nv_tgdd || []),
+          ...(curr.td_nv_tz || [])
+        ],
         dt_nv_hop_nhat: curr.dt_nv_hop_nhat || ORIGINAL_NV_HOP_NHAT || [],
         aio_employees: curr.aio_employees || ORIGINAL_INITIAL_DATA.aio_employees || [],
         stores_list: curr.stores_list || ORIGINAL_INITIAL_DATA.stores_list || []
