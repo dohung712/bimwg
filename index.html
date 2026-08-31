@@ -3869,7 +3869,7 @@
               document.getElementById('authModal').classList.add('hidden');
               
               // Determine role (example: emails containing 'admin' or specified in Firestore)
-              currentUserRole = user.email.includes('admin') || user.email.includes('manager') ? 'admin' : 'staff';
+              currentUserRole = (user.email === 'dohung712@gmail.com' || user.email.includes('admin') || user.email.includes('manager')) ? 'admin' : 'staff';
               
               // Fetch user role from Firestore if available
               try {
