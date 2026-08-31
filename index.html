@@ -51,6 +51,9 @@
       color: #0f172a;
       font-weight: 800;
     }
+  
+    .data-table th, .data-table td { padding: 8px 10px; font-size: 11px; white-space: nowrap; }
+    .data-table th { font-weight: 800; letter-spacing: 0.025em; }
   </style>
 
   <!-- Firebase SDKs with Google Auth -->
@@ -769,8 +772,8 @@
             <button onclick="setEmployeeGridCols(2)" id="btn_grid_2" class="px-2.5 py-1 rounded bg-purple-600 text-white shadow">2 Cột</button>
             <button onclick="setEmployeeGridCols(3)" id="btn_grid_3" class="px-2.5 py-1 rounded text-slate-600 hover:text-slate-900">3 Cột</button>
           </div>
-          <select id="select_nv_detail" class="border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-purple-500">
-            <option value="ALL">Hiển thị toàn bộ Nhân Viên AIO</option>
+          <select id="select_store_nv_detail" class="border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-purple-500">
+            <option value="ALL">Tất cả siêu thị</option>
           </select>
         </div>
       </div>
@@ -2853,7 +2856,7 @@
       });
 
       const currentSelected = selectNV.value || 'ALL';
-      selectNV.innerHTML = '<option value="ALL">Hiển thị toàn bộ Nhân Viên AIO</option>';
+      selectNV.innerHTML = '<option value="ALL">Tất cả siêu thị</option>';
       nvList.forEach(nv => {
         const opt = document.createElement('option');
         opt.value = nv.rawName;
