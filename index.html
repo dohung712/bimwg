@@ -1489,8 +1489,15 @@
         loadSavedSettings();
         updateShortenerBtnStyles();
 
+        const skipSeed = localStorage.getItem('skip_auto_seed') === '1';
+        localStorage.removeItem('skip_auto_seed');
+
         const dbRecords = await getAllSnapshotsFromDB();
         if (!dbRecords || dbRecords.length === 0) {
+          if (skipSeed) {
+            // Người dùng vừa bấm "Xóa Data Cũ" — giữ database trống, không nạp lại data mẫu
+            state.activeDate = new Date().toISOString().slice(0, 10);
+          } else {
           const initialSnapshot = {
             dt_lk: ORIGINAL_INITIAL_DATA.dt_lk,
             dt_ngay: ORIGINAL_INITIAL_DATA.dt_ngay,
@@ -1511,6 +1518,7 @@
           const snap15 = JSON.parse(JSON.stringify(initialSnapshot));
           snap15.dt_nv_hop_nhat.forEach(r => { r['DOANH THU (TR)'] = (parseFloat(r['DOANH THU (TR)']) || 0) * 0.45; });
           await saveSnapshotToDB('2026-08-15', snap15);
+          }
         }
 
         await reloadHistoryState();
@@ -1533,6 +1541,7 @@
       }
 
       updateDateSelectors();
+      updateUploadStatuses();
       renderAll();
     }
 
@@ -1563,6 +1572,52 @@
     function fmtPct(val, dec = 1) {
       if (val === undefined || val === null || isNaN(val) || val === '') return '0%';
       return Number(val).toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: dec }) + '%';
+    }
+
+    function formatUploadTime(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mo = String(d.getMonth() + 1).padStart(2, '0');
+      return `${hh}:${mm} ${dd}/${mo}`;
+    }
+
+    // Cập nhật trạng thái "Đã nạp lúc..." cho từng loại file dựa trên dữ liệu của ngày đang xem
+    function updateUploadStatuses() {
+      const snap = state.allSnapshots[state.activeDate] || {};
+      const meta = snap.uploadMeta || {};
+      const maps = [
+        { key: 'dt_lk', status: 'st_dt_lk', label: 'DT Luỹ Kế' },
+        { key: 'dt_ngay', status: 'st_dt_ngay', label: 'DT Realtime' },
+        { key: 'td_lk', status: 'st_td_lk', label: 'TĐ Luỹ Kế' },
+        { key: 'td_ngay', status: 'st_td_ngay', label: 'TĐ Realtime' },
+        { key: 'dt_nv_hop_nhat', status: 'st_dt_nv', label: 'DT Nhân Viên' },
+        { key: 'td_nv_tgdd', status: 'st_td_nv_tgdd', label: 'TĐ NV TGDĐ' },
+        { key: 'td_nv_tz', status: 'st_td_nv_tz', label: 'TĐ NV TZ' },
+        { key: 'gio_cong', status: 'st_gio_cong', label: 'Giờ Công' }
+      ];
+
+      maps.forEach(m => {
+        const el = document.getElementById(m.status);
+        if (!el) return;
+        const hasData = Array.isArray(snap[m.key]) && snap[m.key].length > 0;
+        const ts = meta[m.key];
+
+        if (m.key === 'gio_cong' && hasData) {
+          const count = (snap.aio_employees || []).length;
+          el.innerHTML = ts
+            ? `<span class="text-emerald-700 font-bold">✓ ${count} AIO</span> <span class="text-slate-400">· ${formatUploadTime(ts)}</span>`
+            : `<span class="text-emerald-700 font-bold">✓ ${count} AIO</span>`;
+        } else if (hasData) {
+          el.innerHTML = ts
+            ? `<span class="text-emerald-600 font-bold">✓ Đã nạp</span> <span class="text-slate-400">· ${formatUploadTime(ts)}</span>`
+            : `<span class="text-emerald-600 font-bold">✓ Đã nạp</span> <span class="text-slate-400">(chưa rõ giờ)</span>`;
+        } else {
+          el.innerHTML = `<span class="text-slate-400">Chưa nạp</span>`;
+        }
+      });
     }
 
     function showToast(msg, duration = 2500) {
@@ -2729,7 +2784,7 @@
       const data = getCurrentData();
       const tbodyRanking = document.getElementById('tbody_nv_ranking');
       const containerCards = document.getElementById('container_nv_cards');
-      const selectNV = document.getElementById('select_nv_detail');
+      const selectNV = document.getElementById('select_store_nv_detail');
       const filterStore = document.getElementById('filter_nv_store');
 
       tbodyRanking.innerHTML = '';
@@ -3641,6 +3696,10 @@
           if (!state.allSnapshots[targetDate]) {
             state.allSnapshots[targetDate] = { date: targetDate };
           }
+          if (!state.allSnapshots[targetDate].uploadMeta) {
+            state.allSnapshots[targetDate].uploadMeta = {};
+          }
+          state.allSnapshots[targetDate].uploadMeta[typeKey] = Date.now();
 
           if (typeKey === 'gio_cong') {
             const aioList = [];
@@ -3662,16 +3721,15 @@
             });
             state.allSnapshots[targetDate].aio_employees = aioList;
             state.allSnapshots[targetDate].gio_cong = jsonData;
-            document.getElementById(statusElId).innerHTML = `<span class="text-emerald-700 font-bold">✓ ${aioList.length} AIO</span>`;
           } else {
             state.allSnapshots[targetDate][typeKey] = jsonData;
-            document.getElementById(statusElId).innerHTML = `<span class="text-emerald-600 font-bold">✓ Đã nạp</span>`;
           }
 
           await saveSnapshotToDB(targetDate, state.allSnapshots[targetDate]);
           state.activeDate = targetDate;
           await reloadHistoryState();
-          showToast(`Đã nạp và lưu vĩnh viễn dữ liệu ngày ${targetDate} vào Database!`);
+          updateUploadStatuses();
+          showToast(`Đã nạp dữ liệu (${formatUploadTime(Date.now())}) và lưu vĩnh viễn vào Database cho ngày ${targetDate}!`);
         } catch (err) {
           console.error(err);
           alert('Lỗi đọc file: ' + err.message);
@@ -3827,6 +3885,7 @@
       document.getElementById('select_active_date')?.addEventListener('change', (e) => {
         state.activeDate = e.target.value;
         document.querySelectorAll('.curr-date-title').forEach(el => el.innerText = state.activeDate);
+        updateUploadStatuses();
         renderAll();
         showToast(`Đã chuyển sang xem báo cáo ngày: ${state.activeDate}`);
       });
@@ -3840,7 +3899,7 @@
       document.getElementById('search_nhom_hang')?.addEventListener('input', renderTabNhomHang);
       document.getElementById('search_nv')?.addEventListener('input', renderTabNV);
       document.getElementById('filter_nv_store')?.addEventListener('change', renderTabNV);
-      document.getElementById('select_nv_detail')?.addEventListener('change', renderTabNV);
+      document.getElementById('select_store_nv_detail')?.addEventListener('change', renderTabNV);
 
       await initDatabase();
     });
@@ -3848,12 +3907,26 @@
   <script>
 
     function clearAllDataAndReset() {
-      if (confirm("Bạn có chắc chắn muốn XÓA TOÀN BỘ dữ liệu đã lưu để nạp file Excel mới không?")) {
+      if (confirm("Bạn có chắc chắn muốn XÓA TOÀN BỘ dữ liệu đã lưu (tất cả các ngày) để nạp file Excel mới không? Hành động này không thể hoàn tác.")) {
+        showToast("Đang xóa sạch dữ liệu cũ...", 0);
         localStorage.clear();
-        showToast("Đã xóa sạch dữ liệu cũ thành công! Đang tải lại trang...", "success");
-        setTimeout(() => {
-          location.reload();
-        }, 1000);
+        localStorage.setItem('skip_auto_seed', '1');
+        const delReq = indexedDB.deleteDatabase(DB_NAME);
+        delReq.onsuccess = () => {
+          hideToast();
+          showToast("Đã xóa sạch dữ liệu cũ thành công! Đang tải lại trang...");
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        };
+        delReq.onerror = () => {
+          hideToast();
+          alert("Có lỗi khi xóa dữ liệu. Vui lòng thử lại.");
+        };
+        delReq.onblocked = () => {
+          hideToast();
+          alert("Không thể xóa dữ liệu vì đang có tab khác mở ứng dụng này. Vui lòng đóng các tab khác rồi thử lại.");
+        };
       }
     }
 
