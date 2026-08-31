@@ -1998,7 +1998,7 @@
       let countPass = 0, countWarn = 0, countDanger = 0;
 
       const searchKeyword = (document.getElementById('search_cuoi_ngay_td')?.value || '').toLowerCase();
-      const filterStoreVal = filterStoreTD.value || 'ALL';
+      const filterStoreVal = filterStoreTD?.value || 'ALL';
 
       const availableStores = Array.from(new Set(validTD_LK.map(r => r['ĐƠN VỊ / NHÂN VIÊN'] || '')));
       filterStoreTD.innerHTML = '<option value="ALL">Toàn Bộ Siêu Thị</option>';
@@ -2515,7 +2515,7 @@
         stores[storeName].push(row);
       });
 
-      const currentSelected = selectST.value || 'ALL';
+      const currentSelected = selectST?.value || 'ALL';
       selectST.innerHTML = '<option value="ALL">Hiển thị toàn bộ Siêu thị</option>';
       Object.keys(stores).forEach(st => {
         const opt = document.createElement('option');
@@ -2849,7 +2849,7 @@
       });
 
       const totalAIODT = nvList.reduce((acc, n) => acc + n.totalDT, 0);
-      const storeFilterVal = filterStore.value || 'ALL';
+      const storeFilterVal = filterStore?.value || 'ALL';
       filterStore.innerHTML = '<option value="ALL">Tất cả siêu thị</option>';
       new Set(nvList.map(n => n.storeName)).forEach(st => {
         const opt = document.createElement('option');
@@ -2859,7 +2859,7 @@
         filterStore.appendChild(opt);
       });
 
-      const currentSelected = selectNV.value || 'ALL';
+      const currentSelected = selectNV?.value || 'ALL';
       selectNV.innerHTML = '<option value="ALL">Tất cả siêu thị</option>';
       nvList.forEach(nv => {
         const opt = document.createElement('option');
