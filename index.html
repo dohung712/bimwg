@@ -8,7 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (v9 Compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -35,7 +35,7 @@
 
       <div id="login_error" class="hidden bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold p-3 rounded-xl"></div>
 
-      <button onclick="loginWithGoogle()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition">
+      <button onclick="loginWithGoogle()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition cursor-pointer">
         <i class="fa-brands fa-google text-amber-400 text-lg"></i> Đăng Nhập Bằng Google
       </button>
       <p class="text-[11px] text-slate-400">Chỉ các email có trong danh sách Whitelist mới có thể truy cập dữ liệu.</p>
@@ -60,16 +60,16 @@
           </div>
           <div>
             <h1 class="text-base sm:text-xl font-black tracking-tight">HỆ THỐNG QUẢN LÝ DOANH THU & THI ĐUA</h1>
-            <p class="text-[11px] text-indigo-200">Đang đăng nhập bởi: <b id="lbl_user_email" class="text-amber-300"></b> | Quyền: <span id="lbl_user_role" class="uppercase font-black"></span></p>
+            <p class="text-[11px] text-indigo-200">Đăng nhập bởi: <b id="lbl_user_email" class="text-amber-300"></b> | Quyền: <span id="lbl_user_role" class="uppercase font-black"></span></p>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
           <!-- Nút Admin Panel (Chỉ hiển thị với Admin) -->
-          <button id="btn_admin_panel" onclick="openAdminPanel()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 px-3 py-1.5 rounded-lg font-black text-xs shadow flex items-center gap-1.5">
+          <button id="btn_admin_panel" onclick="openAdminPanel()" class="hidden bg-amber-500 hover:bg-amber-600 text-slate-950 px-3 py-1.5 rounded-lg font-black text-xs shadow flex items-center gap-1.5 cursor-pointer">
             <i class="fa-solid fa-user-gear"></i> Quản Lý Whitelist
           </button>
-          <button onclick="logoutSystem()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs shadow flex items-center gap-1.5">
+          <button onclick="logoutSystem()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs shadow flex items-center gap-1.5 cursor-pointer">
             <i class="fa-solid fa-right-from-bracket"></i> Đăng Xuất
           </button>
         </div>
@@ -86,7 +86,7 @@
             <i class="fa-solid fa-file-excel"></i> Nạp File Excel Báo Cáo
             <input type="file" id="input_excel" accept=".xlsx, .xls" class="hidden" onchange="handleUserUploadExcel(event)">
           </label>
-          <button onclick="loadUserDataFromCloud()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow flex items-center gap-2">
+          <button onclick="loadUserDataFromCloud()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow flex items-center gap-2 cursor-pointer">
             <i class="fa-solid fa-rotate"></i> Tải Lại Dữ Liệu Cloud
           </button>
         </div>
@@ -100,7 +100,7 @@
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
       <div class="flex items-center justify-between border-b pb-3">
         <h3 class="font-black text-base text-slate-900"><i class="fa-solid fa-users-gear text-amber-500"></i> Quản Lý Danh Sách Email Được Cấp Quyền (Whitelist)</h3>
-        <button onclick="closeAdminPanel()" class="text-slate-400 hover:text-slate-700 text-lg font-bold">&times;</button>
+        <button onclick="closeAdminPanel()" class="text-slate-400 hover:text-slate-700 text-lg font-bold cursor-pointer">&times;</button>
       </div>
 
       <div class="bg-slate-50 p-4 rounded-xl border space-y-3">
@@ -111,7 +111,7 @@
             <option value="user">User (Nhân viên)</option>
             <option value="admin">Admin (Quản lý)</option>
           </select>
-          <button onclick="addEmailToWhitelist()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow">Cấp Quyền Ngay</button>
+          <button onclick="addEmailToWhitelist()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg shadow cursor-pointer">Cấp Quyền Ngay</button>
         </div>
       </div>
 
@@ -133,17 +133,16 @@
 
   <!-- SCRIPT CẤU HÌNH & XỬ LÝ FIREBASE -->
   <script>
-    // 👇 BẠN THAY THÔNG TIN FIREBASE CỦA BẠN VÀO ĐÂY (Lấy từ Firebase Console)
     const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyDpP-4ZLeFU1TmvOA27KPUUPICHWPRKEEY",
+      authDomain: "bimwg-59b42.firebaseapp.com",
+      projectId: "bimwg-59b42",
+      storageBucket: "bimwg-59b42.firebasestorage.app",
+      messagingSenderId: "981323594932",
+      appId: "1:981323594932:web:7b65bb579d55ff9b6babe1",
+      measurementId: "G-NFHG0Q2YVJ"
     };
 
-    // Khởi tạo Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -151,7 +150,6 @@
     let currentUserEmail = "";
     let currentUserRole = "user";
 
-    // 1. ĐĂNG NHẬP BẰNG GOOGLE
     function loginWithGoogle() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider).catch((error) => {
@@ -169,22 +167,19 @@
       errEl.classList.remove("hidden");
     }
 
-    // 2. LẮNG NGHE TRẠNG THÁI ĐĂNG NHẬP & KIỂM TRA WHITELIST
     auth.onAuthStateChanged(async (user) => {
       if (user) {
-        currentUserEmail = user.email;
+        currentUserEmail = user.email.toLowerCase();
         document.getElementById("loading_screen").classList.remove("hidden");
         document.getElementById("loading_txt").innerText = "Đang kiểm tra quyền hạn của " + currentUserEmail + "...";
 
         try {
-          // Kiểm tra xem email có trong Whitelist Firestore không
           const whitelistDoc = await db.collection("whitelist").doc(currentUserEmail).get();
 
           if (whitelistDoc.exists) {
             const data = whitelistDoc.data();
             currentUserRole = data.role || "user";
 
-            // Ẩn login, hiện app
             document.getElementById("login_screen").classList.add("hidden");
             document.getElementById("loading_screen").classList.add("hidden");
             document.getElementById("main_app").classList.remove("hidden");
@@ -196,11 +191,9 @@
               document.getElementById("btn_admin_panel").classList.remove("hidden");
             }
 
-            // Load dữ liệu riêng của user này từ Cloud
             loadUserDataFromCloud();
 
           } else {
-            // Không có trong whitelist -> Đăng xuất và báo lỗi
             auth.signOut();
             document.getElementById("loading_screen").classList.add("hidden");
             showLoginError("Email " + currentUserEmail + " chưa được cấp quyền truy cập hệ thống! Vui lòng liên hệ Admin.");
@@ -217,7 +210,6 @@
       }
     });
 
-    // 3. QUẢN LÝ DATABASE RIÊNG CỦA MỖI USER (Không trùng lặp)
     async function loadUserDataFromCloud() {
       try {
         const docRef = db.collection("user_data").doc(currentUserEmail);
@@ -225,7 +217,6 @@
         if (doc.exists) {
           const payload = doc.data();
           document.getElementById("sync_status").innerText = "Trạng thái: Đã đồng bộ dữ liệu lúc " + new Date(payload.updatedAt).toLocaleString();
-          // Dữ liệu cá nhân của user được lưu tại payload.data
         } else {
           document.getElementById("sync_status").innerText = "Trạng thái: Chưa có dữ liệu trên Cloud, hãy nạp file mới.";
         }
@@ -246,7 +237,6 @@
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(firstSheet);
 
-          // Lưu lên Firestore với doc ID là email của user -> Đảm bảo tách biệt độc lập 100%
           document.getElementById("loading_screen").classList.remove("hidden");
           document.getElementById("loading_txt").innerText = "Đang lưu dữ liệu lên Cloud Database...";
 
@@ -267,7 +257,6 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // 4. CHỨC NĂNG ADMIN: QUẢN LÝ WHITELIST (Thêm / Xóa quyền)
     async function openAdminPanel() {
       document.getElementById("adminModal").classList.remove("hidden");
       fetchWhitelistUsers();
@@ -286,14 +275,14 @@
 
       snapshot.forEach(doc => {
         const d = doc.data();
-        const startDate = new Date(d.startTime).toLocaleString();
+        const startDate = d.startTime ? new Date(d.startTime).toLocaleString() : "N/A";
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50">
             <td class="p-3 font-bold text-slate-900">${d.email}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-black ${d.role === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">${d.role.toUpperCase()}</span></td>
             <td class="p-3 text-slate-500">${startDate}</td>
             <td class="p-3 text-center">
-              <button onclick="removeEmailFromWhitelist('${d.email}')" class="bg-rose-100 text-rose-700 hover:bg-rose-200 px-2.5 py-1 rounded-lg font-bold text-[10px]">Thu Hồi Quyền</button>
+              <button onclick="removeEmailFromWhitelist('${d.email}')" class="bg-rose-100 text-rose-700 hover:bg-rose-200 px-2.5 py-1 rounded-lg font-bold text-[10px] cursor-pointer">Thu Hồi Quyền</button>
             </td>
           </tr>
         `;
