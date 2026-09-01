@@ -898,6 +898,70 @@
 
     <!-- TAB 8: CÀI ĐẶT & QUẢN LÝ DANH SÁCH SIÊU THỊ / VIẾT TẮT -->
     <div id="tab5" class="tab-content hidden space-y-6">
+
+      <!-- QUẢN LÝ PHÂN QUYỀN TRUY CẬP (DOHUNG712@GMAIL.COM LÀ MASTER ADMIN) -->
+      <div id="permission_management_card" class="card-export p-4 sm:p-6 bg-white rounded-xl shadow-md border border-slate-200 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b">
+          <div>
+            <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-shield-halved text-rose-600"></i> QUẢN LÝ PHÂN QUYỀN TÀI KHOẢN (MASTER: dohung712@gmail.com)
+            </h3>
+            <p class="text-xs text-slate-500">Cấp quyền hoặc thu hồi quyền truy cập (Admin / Nhân viên) cho các tài khoản Google (Gmail) khác</p>
+          </div>
+          <div id="admin_action_btns" class="hidden flex items-center gap-2">
+            <button onclick="openAddPermissionModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow flex items-center gap-1">
+              <i class="fa-solid fa-user-plus"></i> Cấp Quyền Email Mới
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border border-slate-200">
+          <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-900 text-white font-bold uppercase text-[11px]">
+              <tr>
+                <th class="p-3">Email Tài Khoản</th>
+                <th class="p-3 w-40 text-center">Vai Trò</th>
+                <th class="p-3 w-44 text-center">Ngày Cập Nhật</th>
+                <th class="p-3 w-28 text-center" id="th_action_col">Hành Động</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium" id="table_permissions_tbody">
+              <tr>
+                <td colspan="4" class="p-4 text-center text-slate-400">Đang tải danh sách phân quyền...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Cấp Quyền Email -->
+      <div id="permissionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b pb-3">
+            <h3 class="font-bold text-base text-slate-900"><i class="fa-solid fa-user-shield text-rose-600"></i> Cấp Quyền Tài Khoản</h3>
+            <button onclick="closePermissionModal()" class="text-slate-400 hover:text-slate-700 text-lg font-bold">&times;</button>
+          </div>
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Nhập Địa Chỉ Gmail:</label>
+              <input type="email5" id="input_perm_email" placeholder="example@gmail.com" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Chọn Vai Trò:</label>
+              <select id="select_perm_role" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white">
+                <option value="staff">Nhân viên / User (Chỉ xem)</option>
+                <option value="admin">Admin / Quản lý cụm (Toàn quyền)</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-3 border-t">
+            <button onclick="closePermissionModal()" class="px-3 py-1.5 rounded-lg border text-xs font-bold text-slate-600 hover:bg-slate-100">Hủy</button>
+            <button onclick="saveNewPermission()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold shadow">Lưu Quyền</button>
+          </div>
+        </div>
+      </div>
+
+
       <!-- TRUNG TÂM LIÊN KẾT NHANH DỮ LIỆU NGUỒN (ĐIỆN MÁY XANH DASHBOARD) -->
       <div class="card-export p-4 sm:p-6 bg-white rounded-xl shadow-md border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -1489,15 +1553,8 @@
         loadSavedSettings();
         updateShortenerBtnStyles();
 
-        const skipSeed = localStorage.getItem('skip_auto_seed') === '1';
-        localStorage.removeItem('skip_auto_seed');
-
         const dbRecords = await getAllSnapshotsFromDB();
         if (!dbRecords || dbRecords.length === 0) {
-          if (skipSeed) {
-            // Người dùng vừa bấm "Xóa Data Cũ" — giữ database trống, không nạp lại data mẫu
-            state.activeDate = new Date().toISOString().slice(0, 10);
-          } else {
           const initialSnapshot = {
             dt_lk: ORIGINAL_INITIAL_DATA.dt_lk,
             dt_ngay: ORIGINAL_INITIAL_DATA.dt_ngay,
@@ -1518,7 +1575,6 @@
           const snap15 = JSON.parse(JSON.stringify(initialSnapshot));
           snap15.dt_nv_hop_nhat.forEach(r => { r['DOANH THU (TR)'] = (parseFloat(r['DOANH THU (TR)']) || 0) * 0.45; });
           await saveSnapshotToDB('2026-08-15', snap15);
-          }
         }
 
         await reloadHistoryState();
@@ -1541,7 +1597,6 @@
       }
 
       updateDateSelectors();
-      updateUploadStatuses();
       renderAll();
     }
 
@@ -1572,52 +1627,6 @@
     function fmtPct(val, dec = 1) {
       if (val === undefined || val === null || isNaN(val) || val === '') return '0%';
       return Number(val).toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: dec }) + '%';
-    }
-
-    function formatUploadTime(ts) {
-      if (!ts) return '';
-      const d = new Date(ts);
-      const hh = String(d.getHours()).padStart(2, '0');
-      const mm = String(d.getMinutes()).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mo = String(d.getMonth() + 1).padStart(2, '0');
-      return `${hh}:${mm} ${dd}/${mo}`;
-    }
-
-    // Cập nhật trạng thái "Đã nạp lúc..." cho từng loại file dựa trên dữ liệu của ngày đang xem
-    function updateUploadStatuses() {
-      const snap = state.allSnapshots[state.activeDate] || {};
-      const meta = snap.uploadMeta || {};
-      const maps = [
-        { key: 'dt_lk', status: 'st_dt_lk', label: 'DT Luỹ Kế' },
-        { key: 'dt_ngay', status: 'st_dt_ngay', label: 'DT Realtime' },
-        { key: 'td_lk', status: 'st_td_lk', label: 'TĐ Luỹ Kế' },
-        { key: 'td_ngay', status: 'st_td_ngay', label: 'TĐ Realtime' },
-        { key: 'dt_nv_hop_nhat', status: 'st_dt_nv', label: 'DT Nhân Viên' },
-        { key: 'td_nv_tgdd', status: 'st_td_nv_tgdd', label: 'TĐ NV TGDĐ' },
-        { key: 'td_nv_tz', status: 'st_td_nv_tz', label: 'TĐ NV TZ' },
-        { key: 'gio_cong', status: 'st_gio_cong', label: 'Giờ Công' }
-      ];
-
-      maps.forEach(m => {
-        const el = document.getElementById(m.status);
-        if (!el) return;
-        const hasData = Array.isArray(snap[m.key]) && snap[m.key].length > 0;
-        const ts = meta[m.key];
-
-        if (m.key === 'gio_cong' && hasData) {
-          const count = (snap.aio_employees || []).length;
-          el.innerHTML = ts
-            ? `<span class="text-emerald-700 font-bold">✓ ${count} AIO</span> <span class="text-slate-400">· ${formatUploadTime(ts)}</span>`
-            : `<span class="text-emerald-700 font-bold">✓ ${count} AIO</span>`;
-        } else if (hasData) {
-          el.innerHTML = ts
-            ? `<span class="text-emerald-600 font-bold">✓ Đã nạp</span> <span class="text-slate-400">· ${formatUploadTime(ts)}</span>`
-            : `<span class="text-emerald-600 font-bold">✓ Đã nạp</span> <span class="text-slate-400">(chưa rõ giờ)</span>`;
-        } else {
-          el.innerHTML = `<span class="text-slate-400">Chưa nạp</span>`;
-        }
-      });
     }
 
     function showToast(msg, duration = 2500) {
@@ -2784,7 +2793,7 @@
       const data = getCurrentData();
       const tbodyRanking = document.getElementById('tbody_nv_ranking');
       const containerCards = document.getElementById('container_nv_cards');
-      const selectNV = document.getElementById('select_store_nv_detail');
+      const selectNV = document.getElementById('select_nv_detail');
       const filterStore = document.getElementById('filter_nv_store');
 
       tbodyRanking.innerHTML = '';
@@ -3696,10 +3705,6 @@
           if (!state.allSnapshots[targetDate]) {
             state.allSnapshots[targetDate] = { date: targetDate };
           }
-          if (!state.allSnapshots[targetDate].uploadMeta) {
-            state.allSnapshots[targetDate].uploadMeta = {};
-          }
-          state.allSnapshots[targetDate].uploadMeta[typeKey] = Date.now();
 
           if (typeKey === 'gio_cong') {
             const aioList = [];
@@ -3721,15 +3726,16 @@
             });
             state.allSnapshots[targetDate].aio_employees = aioList;
             state.allSnapshots[targetDate].gio_cong = jsonData;
+            document.getElementById(statusElId).innerHTML = `<span class="text-emerald-700 font-bold">✓ ${aioList.length} AIO</span>`;
           } else {
             state.allSnapshots[targetDate][typeKey] = jsonData;
+            document.getElementById(statusElId).innerHTML = `<span class="text-emerald-600 font-bold">✓ Đã nạp</span>`;
           }
 
           await saveSnapshotToDB(targetDate, state.allSnapshots[targetDate]);
           state.activeDate = targetDate;
           await reloadHistoryState();
-          updateUploadStatuses();
-          showToast(`Đã nạp dữ liệu (${formatUploadTime(Date.now())}) và lưu vĩnh viễn vào Database cho ngày ${targetDate}!`);
+          showToast(`Đã nạp và lưu vĩnh viễn dữ liệu ngày ${targetDate} vào Database!`);
         } catch (err) {
           console.error(err);
           alert('Lỗi đọc file: ' + err.message);
@@ -3885,7 +3891,6 @@
       document.getElementById('select_active_date')?.addEventListener('change', (e) => {
         state.activeDate = e.target.value;
         document.querySelectorAll('.curr-date-title').forEach(el => el.innerText = state.activeDate);
-        updateUploadStatuses();
         renderAll();
         showToast(`Đã chuyển sang xem báo cáo ngày: ${state.activeDate}`);
       });
@@ -3899,7 +3904,7 @@
       document.getElementById('search_nhom_hang')?.addEventListener('input', renderTabNhomHang);
       document.getElementById('search_nv')?.addEventListener('input', renderTabNV);
       document.getElementById('filter_nv_store')?.addEventListener('change', renderTabNV);
-      document.getElementById('select_store_nv_detail')?.addEventListener('change', renderTabNV);
+      document.getElementById('select_nv_detail')?.addEventListener('change', renderTabNV);
 
       await initDatabase();
     });
@@ -3907,26 +3912,12 @@
   <script>
 
     function clearAllDataAndReset() {
-      if (confirm("Bạn có chắc chắn muốn XÓA TOÀN BỘ dữ liệu đã lưu (tất cả các ngày) để nạp file Excel mới không? Hành động này không thể hoàn tác.")) {
-        showToast("Đang xóa sạch dữ liệu cũ...", 0);
+      if (confirm("Bạn có chắc chắn muốn XÓA TOÀN BỘ dữ liệu đã lưu để nạp file Excel mới không?")) {
         localStorage.clear();
-        localStorage.setItem('skip_auto_seed', '1');
-        const delReq = indexedDB.deleteDatabase(DB_NAME);
-        delReq.onsuccess = () => {
-          hideToast();
-          showToast("Đã xóa sạch dữ liệu cũ thành công! Đang tải lại trang...");
-          setTimeout(() => {
-            location.reload();
-          }, 1000);
-        };
-        delReq.onerror = () => {
-          hideToast();
-          alert("Có lỗi khi xóa dữ liệu. Vui lòng thử lại.");
-        };
-        delReq.onblocked = () => {
-          hideToast();
-          alert("Không thể xóa dữ liệu vì đang có tab khác mở ứng dụng này. Vui lòng đóng các tab khác rồi thử lại.");
-        };
+        showToast("Đã xóa sạch dữ liệu cũ thành công! Đang tải lại trang...", "success");
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
       }
     }
 
@@ -3945,21 +3936,28 @@
               currentLoggedUserEmail = user.email;
               document.getElementById('authModal').classList.add('hidden');
               
-              // Determine role (example: emails containing 'admin' or specified in Firestore)
-              currentUserRole = (user.email === 'dohung712@gmail.com' || user.email.includes('admin') || user.email.includes('manager')) ? 'admin' : 'staff';
-              
-              // Fetch user role from Firestore if available
-              try {
-                const userDocRef = window.doc(window.firebaseDb, "users", user.uid);
-                const userSnap = await window.getDoc(userDocRef);
-                if (userSnap.exists()) {
-                  currentUserRole = userSnap.data().role || currentUserRole;
+              // Master admin dohung712@gmail.com always has full admin rights
+              if (user.email === 'dohung712@gmail.com') {
+                currentUserRole = 'admin';
+              } else {
+                currentUserRole = 'staff';
+                // Check permissions from Firestore collection 'settings', document 'permissions'
+                try {
+                  const permDocRef = window.doc(window.firebaseDb, "settings", "permissions");
+                  const permSnap = await window.getDoc(permDocRef);
+                  if (permSnap.exists()) {
+                    const data = permSnap.data();
+                    if (data && data.emails && data.emails[user.email]) {
+                      currentUserRole = data.emails[user.email].role || 'staff';
+                    }
+                  }
+                } catch(e) {
+                  console.log("Error fetching permissions from Firestore", e);
                 }
-              } catch(e) {
-                console.log("Using default role assignment", e);
               }
 
               applyRolePermissions();
+              loadPermissionsTable();
               showToast("Đăng nhập thành công: " + user.email + " (" + currentUserRole.toUpperCase() + ")");
             } else {
               document.getElementById('authModal').classList.remove('hidden');
@@ -4025,7 +4023,145 @@
         headerRight.appendChild(badge);
       }
     }
-  </script>
+  
+
+    async function loadPermissionsTable() {
+      const tbody = document.getElementById('table_permissions_tbody');
+      const adminBtns = document.getElementById('admin_action_btns');
+      if (!tbody) return;
+
+      if (currentLoggedUserEmail === 'dohung712@gmail.com') {
+        adminBtns?.classList.remove('hidden');
+      } else {
+        adminBtns?.classList.add('hidden');
+      }
+
+      tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400">Đang tải danh sách phân quyền...</td></tr>`;
+
+      try {
+        const permDocRef = window.doc(window.firebaseDb, "settings", "permissions");
+        const permSnap = await window.getDoc(permDocRef);
+        let emailsMap = {
+          "dohung712@gmail.com": { role: "admin", updatedAt: new Date().toISOString() }
+        };
+
+        if (permSnap.exists()) {
+          const data = permSnap.data();
+          if (data && data.emails) {
+            emailsMap = { ...emailsMap, ...data.emails };
+          }
+        }
+
+        let html = '';
+        const keys = Object.keys(emailsMap);
+        keys.forEach(email => {
+          const info = emailsMap[email];
+          const roleBadge = info.role === 'admin' 
+            ? '<span class="bg-rose-100 text-rose-800 border border-rose-300 px-2 py-0.5 rounded-full font-black text-[10px]">ADMIN (Toàn quyền)</span>'
+            : '<span class="bg-blue-100 text-blue-800 border border-blue-300 px-2 py-0.5 rounded-full font-black text-[10px]">NHÂN VIÊN (Chỉ xem)</span>';
+          
+          const dateStr = info.updatedAt ? new Date(info.updatedAt).toLocaleString('vi-VN') : 'N/A';
+          const canDelete = currentLoggedUserEmail === 'dohung712@gmail.com' && email !== 'dohung712@gmail.com';
+
+          html += `
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-bold text-slate-800"><i class="fa-solid fa-envelope text-indigo-600 mr-1.5"></i> ${email}</td>
+              <td class="p-3 text-center">${roleBadge}</td>
+              <td class="p-3 text-center text-slate-500">${dateStr}</td>
+              <td class="p-3 text-center">
+                ${canDelete ? `<button onclick="deletePermission('${email}')" class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-2.5 py-1 rounded-lg font-bold text-[11px] shadow-sm transition"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : '<span class="text-slate-300 text-[11px]">Mặc định</span>'}
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      } catch (err) {
+        console.error("Error loading permissions:", err);
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-rose-500">Lỗi tải danh sách phân quyền từ Cloud.</td></tr>`;
+      }
+    }
+
+    function openAddPermissionModal() {
+      if (currentLoggedUserEmail !== 'dohung712@gmail.com') {
+        alert('Chỉ tài khoản Master Admin (dohung712@gmail.com) mới có quyền cấp quyền!');
+        return;
+      }
+      document.getElementById('input_perm_email').value = '';
+      document.getElementById('select_perm_role').value = 'staff';
+      document.getElementById('permissionModal').classList.remove('hidden');
+    }
+
+    function closePermissionModal() {
+      document.getElementById('permissionModal').classList.add('hidden');
+    }
+
+    async function saveNewPermission() {
+      const email = document.getElementById('input_perm_email').value.trim().toLowerCase();
+      const role = document.getElementById('select_perm_role').value;
+
+      if (!email || !email.includes('@') || !email.includes('.')) {
+        alert('Vui lòng nhập địa chỉ Gmail hợp lệ!');
+        return;
+      }
+
+      showToast('Đang cập nhật phân quyền lên Cloud...', 0);
+      try {
+        const permDocRef = window.doc(window.firebaseDb, "settings", "permissions");
+        const permSnap = await window.getDoc(permDocRef);
+        let emailsMap = {};
+        if (permSnap.exists()) {
+          emailsMap = permSnap.data().emails || {};
+        }
+
+        emailsMap[email] = {
+          role: role,
+          updatedAt: new Date().toISOString(),
+          updatedBy: currentLoggedUserEmail
+        };
+
+        await window.setDoc(permDocRef, { emails: emailsMap }, { merge: true });
+        hideToast();
+        showToast(`Đã cấp quyền ${role.toUpperCase()} thành công cho ${email}!`);
+        closePermissionModal();
+        loadPermissionsTable();
+      } catch (err) {
+        hideToast();
+        alert('Lỗi lưu phân quyền: ' + err.message);
+      }
+    }
+
+    async function deletePermission(email) {
+      if (currentLoggedUserEmail !== 'dohung712@gmail.com') {
+        alert('Chỉ tài khoản Master Admin mới có quyền xóa phân quyền!');
+        return;
+      }
+
+      if (email === 'dohung712@gmail.com') {
+        alert('Không thể xóa quyền của Master Admin chính!');
+        return;
+      }
+
+      if (!confirm(`Bạn có chắc chắn muốn xóa quyền truy cập của ${email} không?`)) return;
+
+      showToast('Đang xóa phân quyền...', 0);
+      try {
+        const permDocRef = window.doc(window.firebaseDb, "settings", "permissions");
+        const permSnap = await window.getDoc(permDocRef);
+        if (permSnap.exists()) {
+          let emailsMap = permSnap.data().emails || {};
+          delete emailsMap[email];
+          await window.setDoc(permDocRef, { emails: emailsMap }, { merge: true });
+        }
+        hideToast();
+        showToast(`Đã thu hồi quyền truy cập của ${email}!`);
+        loadPermissionsTable();
+      } catch (err) {
+        hideToast();
+        alert('Lỗi xóa phân quyền: ' + err.message);
+      }
+    }
+
+</script>
 
 </body>
 </html>
